@@ -18,6 +18,7 @@ import android.widget.EditText;
 
 import edu.ucsd.cse110.sharednotes.R;
 import edu.ucsd.cse110.sharednotes.model.Note;
+import edu.ucsd.cse110.sharednotes.model.NoteAPI;
 import edu.ucsd.cse110.sharednotes.view.NotesAdapter;
 import edu.ucsd.cse110.sharednotes.viewmodel.ListViewModel;
 
@@ -93,6 +94,19 @@ public class ListActivity extends AppCompatActivity {
         //
         // Instead, we do direct by-parameter dependency inversion/injection.
         // This way, it is impossible to call the setup methods in the wrong order.
+
+//        NoteAPI noteAPI = NoteAPI.provide();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                noteAPI.echo("waaaa...");
+//            }
+//        }).start();
+//        noteAPI.echoAsync("wawawa....");
+//        var n= noteAPI.getNoteAsync("8lab");
+//        if (n==null) System.out.println("note not found");
+
+//        noteAPI.putNoteAsync("6lab", "lab 6 is completed.");
 
         var viewModel = setupViewModel();
         var adapter = setupAdapter(viewModel);

@@ -1,5 +1,7 @@
 package edu.ucsd.cse110.sharednotes.model;
 
+import static edu.ucsd.cse110.sharednotes.model.Note.fromJSON;
+
 import android.util.Log;
 
 import androidx.annotation.AnyThread;
@@ -8,11 +10,14 @@ import androidx.annotation.WorkerThread;
 
 import com.google.gson.Gson;
 
+import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 
 public class NoteAPI {
     // TODO: Implement the API using OkHttp!
@@ -22,7 +27,7 @@ public class NoteAPI {
     // TODO: Read the docs: https://sharednotes.goto.ucsd.edu/docs
 
     private volatile static NoteAPI instance = null;
-
+    public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private OkHttpClient client;
 
     public NoteAPI() {
@@ -72,5 +77,67 @@ public class NoteAPI {
 
         // We can use future.get(1, SECONDS) to wait for the result.
         return future;
+    }
+
+    @WorkerThread
+    public Note getNote(String noteTitle){
+        String encodedTitle = noteTitle.replace(" ", "%20");
+
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle)
+                .method("GET", null)
+                .build();
+
+        try (var response = client.newCall(request).execute()){
+            assert response.body() != null;
+            var body = response.body().string();
+            Log.i("GET_NOTE", body);
+
+//            if (body.contains("title")) System.out.println("note found");
+//            else System.out.println("note does not exist");
+
+            if (!body.contains("title"))
+                return null;
+            Note note = Note.fromJSON(body);
+
+//            System.out.println(note.toJSON());
+
+            return note;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @AnyThread
+    public Future<Note> getNoteAsync(String noteTitle){
+        var executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> getNote(noteTitle));
+        return future;
+    }
+
+    @WorkerThread
+    public void putNote(Note note){
+        String encodedTitle = note.title.replace(" ", "20%");
+        String json = note.toJSON();
+        RequestBody requestBody = RequestBody.create(json, JSON);
+
+        var request = new Request.Builder()
+                .url("https://sharednotes.goto.ucsd.edu/notes/" + encodedTitle)
+                .method("PUT", requestBody)
+                .build();
+
+        try (var response = client.newCall(request).execute()){
+            assert response.body() != null;
+            var body = response.body().string();
+            Log.i("PUT_NOTE", body);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @AnyThread
+    public void putNoteAsync(Note note){
+        var executor = Executors.newSingleThreadExecutor();
+        var future = executor.submit(() -> putNote(note));
     }
 }

@@ -13,6 +13,8 @@ public class NoteRepository {
     private final NoteDao dao;
     private ScheduledFuture<?> poller; // what could this be for... hmm?
 
+    private NoteAPI noteAPI = NoteAPI.provide();
+
     public NoteRepository(NoteDao dao) {
         this.dao = dao;
     }
@@ -91,18 +93,17 @@ public class NoteRepository {
         if (this.poller != null && !this.poller.isCancelled()) {
             poller.cancel(true);
         }
+        return (LiveData<Note>) noteAPI.getNoteAsync(title);
 
         // Set up a background thread that will poll the server every 3 seconds.
 
         // You may (but don't have to) want to cache the LiveData's for each title, so that
         // you don't create a new polling thread every time you call getRemote with the same title.
         // You don't need to worry about killing background threads.
-
-        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public void upsertRemote(Note note) {
         // TODO: Implement upsertRemote!
-        throw new UnsupportedOperationException("Not implemented yet");
+        noteAPI.putNoteAsync(note);
     }
 }

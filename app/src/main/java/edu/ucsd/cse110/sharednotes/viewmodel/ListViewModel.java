@@ -41,11 +41,18 @@ public class ListViewModel extends AndroidViewModel {
      * @return a LiveData object that will be updated when this note changes.
      */
     public LiveData<Note> getOrCreateNote(String title) {
-        if (!repo.existsLocal(title)) {
-            var note = new Note(title, "");
-            repo.upsertLocal(note);
-        }
+//        if (!repo.existsLocal(title)) {
+//            var note = new Note(title, "");
+//            repo.upsertLocal(note);
+//        }
+//        return repo.getLocal(title);
 
+        repo.getSynced(title);
+        //if node cannot be fetched (synced) from sever
+        if (!repo.existsLocal(title)){
+            //insert local and remote
+            repo.upsertSynced(new Note(title, ""));
+        }
         return repo.getLocal(title);
     }
 
